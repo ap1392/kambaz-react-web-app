@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
+
 export default function AccountNavigation() {
   return (
-    <div id="wd-account-navigation">
-      <Link to={`/Kambaz/Account/Signin`}> Signin </Link> <br />
-      <Link to={`/Kambaz/Account/Signup`}> Signup </Link> <br />
-      <Link to={`/Kambaz/Account/Profile`}> Profile </Link> <br />
+    <div id="wd-account-navigation" className="mt-3 p-3">
+      <Link to="/Kambaz/Account/Signin" className="text-dark d-block mb-3">
+        Signin
+      </Link>
+      <Link to="/Kambaz/Account/Signup" className="text-danger d-block mb-3">
+        Signup
+      </Link>
+      <Link to="/Kambaz/Account/Profile" className="text-danger d-block">
+        Profile
+      </Link>
     </div>
   );
 }

@@ -1,106 +1,78 @@
 import { Link } from "react-router-dom";
+import { Row, Col, Card, Button } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 export default function Dashboard() {
+  const courses = [
+    {
+      id: 4700,
+      title: "CS 4700 Networks",
+      description: "Computer Networks",
+      image: "/images/networks.jpg",
+    },
+    {
+      id: 1210,
+      title: "ENVR 1210 Climate Change",
+      description: "Climate Change",
+      image: "/images/climateChange.jpg",
+    },
+    {
+      id: 1145,
+      title: "PHIL 1145 Technology and Human Values",
+      description: "Technology and Human Values",
+      image: "/images/tech.jpg",
+    },
+    {
+      id: 1125,
+      title: "THTR 1125 Improvisation",
+      description: "Improv",
+      image: "/images/improv.jpg",
+    },
+    {
+      id: 2000,
+      title: "IS 2000 Principles of Information Science",
+      description: "Principles of Information Science",
+      image: "/images/infoSci.jpg",
+    },
+    {
+      id: 3800,
+      title: "CS 3800 Theory of Computation",
+      description: "Theory of Computation",
+      image: "/images/theory.jpg",
+    },
+    {
+      id: 3000,
+      title: "CS 3000 Algorithms",
+      description: "Algorithms and Data",
+      image: "/images/algo.jpg",
+    },
+  ];
+
   return (
-    <div id="wd-dashboard">
-      <h1 id="wd-dashboard-title">Dashboard</h1> <hr />
-      <h2 id="wd-dashboard-published">Published Courses (7)</h2> <hr />
-      <div id="wd-dashboard-courses">
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/4700/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/networks.jpg" width={200} />
-            <div>
-              <h5>CS 4700 Networks</h5>
-              <p className="wd-dashboard-course-title">Computer Networks</p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/1210/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/climateChange.jpg" width={200} />
-            <div>
-              <h5>ENVR 1210 Climate Change</h5>
-              <p className="wd-dashboard-course-title">Climate Change</p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/1145/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/tech.jpg" width={200} />
-            <div>
-              <h5>PHIL 1145 Technology and Human Values</h5>
-              <p className="wd-dashboard-course-title">
-                Technology and Human Values
-              </p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/1125/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/improv.jpg" width={200} />
-            <div>
-              <h5>THTR 1125 Improvisation</h5>
-              <p className="wd-dashboard-course-title">Improv</p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/2000/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/infoSci.jpg" width={200} />
-            <div>
-              <h5>IS 2000 Principles of Information Science</h5>
-              <p className="wd-dashboard-course-title">
-                Principles of Information Science
-              </p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/3800/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/theory.jpg" width={200} />
-            <div>
-              <h5>CS 3800 Theory of Computation</h5>
-              <p className="wd-dashboard-course-title">Theory of Computation</p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-        <div className="wd-dashboard-course">
-          <Link
-            to="/Kambaz/Courses/3000/Home"
-            className="wd-dashboard-course-link"
-          >
-            <img src="/images/algo.jpg" width={200} />
-            <div>
-              <h5>CS 3000 Algorithms</h5>
-              <p className="wd-dashboard-course-title">Algorithms and Data</p>
-              <button>Go</button>
-            </div>
-          </Link>
-        </div>
-      </div>
+    <div id="wd-dashboard" className="container mt-4">
+      <h1 id="wd-dashboard-title">Dashboard</h1>
+      <hr />
+      <h2 id="wd-dashboard-published">Published Courses (7)</h2>
+      <hr />
+      <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+        {courses.map((course) => (
+          <Col key={course.id} className="d-flex justify-content-center">
+            <Card style={{ width: "260px" }} className="shadow">
+              <Link
+                to={`/Kambaz/Courses/${course.id}/Home`}
+                className="text-decoration-none text-dark"
+              >
+                <Card.Img variant="top" src={course.image} height={160} />
+                <Card.Body>
+                  <Card.Title>{course.title}</Card.Title>
+                  <Card.Text>{course.description}</Card.Text>
+                  <Button variant="primary">Go</Button>
+                </Card.Body>
+              </Link>
+            </Card>
+          </Col>
+        ))}
+      </Row>
     </div>
   );
 }
