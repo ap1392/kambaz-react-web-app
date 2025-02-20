@@ -1,8 +1,16 @@
 import { FaSearch, FaPlus } from "react-icons/fa";
-import { Button, Form, InputGroup, ListGroup } from "react-bootstrap";
+import { Button, Form, InputGroup } from "react-bootstrap";
+import { useParams } from "react-router";
+import { Link } from "react-router-dom";
+import * as db from "../../Database";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Assignments() {
+  const { cid } = useParams();
+  const courseAssignments = db.assignments.filter(
+    (assignment) => assignment.course === cid
+  );
+
   return (
     <div id="wd-assignments" className="container mt-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -36,138 +44,21 @@ export default function Assignments() {
       </h3>
 
       <ul id="wd-assignment-list" className="list-group">
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/4700/Assignments/1"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Network Basics
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 22 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Jan 29 at 11:59pm | 100 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/1210/Assignments/2"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Climate Systems
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 22 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Jan 30 at 11:59pm | 80 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/1145/Assignments/3"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Ethics in Technology
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 24 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Jan 31 at 11:59pm | 90 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/1125/Assignments/4"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Introduction to Improvisation
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 25 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Feb 1 at 11:59pm | 75 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/2000/Assignments/5"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Information Science Overview
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 26 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Feb 2 at 11:59pm | 100 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/3800/Assignments/6"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Introduction to Computation Theory
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 27 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Feb 3 at 11:59pm | 85 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
-
-        <li className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
-          <div className="flex-grow-1">
-            <a
-              href="#/Kambaz/Courses/3000/Assignments/7"
-              className="fw-bold text-decoration-none text-dark"
-            >
-              A1 - Algorithm Design Basics
-            </a>
-            <p className="mb-0 text-muted">
-              Multiple Modules |{" "}
-              <strong>Not available until Jan 28 at 12:00am</strong> |{" "}
-              <strong>Due</strong> Feb 4 at 11:59pm | 120 pts
-            </p>
-          </div>
-          <Button variant="light" className="border">
-            <FaPlus />
-          </Button>
-        </li>
+        {courseAssignments.map((assignment) => (
+          <li key={assignment._id} className="list-group-item d-flex align-items-center border-start border-success border-4 py-3">
+            <div className="flex-grow-1">
+              <Link
+                to={`/Kambaz/Courses/${cid}/Assignments/${assignment._id}`}
+                className="fw-bold text-decoration-none text-dark"
+              >
+                {assignment.title}
+              </Link>
+            </div>
+            <Button variant="light" className="border">
+              <FaPlus />
+            </Button>
+          </li>
+        ))}
       </ul>
     </div>
   );

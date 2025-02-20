@@ -6,6 +6,49 @@ import { FaInbox, FaRegCircleUser } from "react-icons/fa6";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function KambazNavigation() {
+  const navLinks = [
+    {
+      id: "wd-dashboard-link",
+      label: "Dashboard",
+      path: "/Kambaz/Dashboard",
+      icon: AiOutlineDashboard,
+      iconClass: "fs-1 text-danger",
+      textClass: "text-danger",
+    },
+    {
+      id: "wd-course-link",
+      label: "Courses",
+      path: "/Kambaz/Courses/RS101/Home",
+      icon: LiaBookSolid,
+      iconClass: "fs-1 text-danger",
+      textClass: "text-white",
+    },
+    {
+      id: "wd-calendar-link",
+      label: "Calendar",
+      path: "/Kambaz/Calendar",
+      icon: IoCalendarOutline,
+      iconClass: "fs-1 text-white",
+      textClass: "text-white",
+    },
+    {
+      id: "wd-inbox-link",
+      label: "Inbox",
+      path: "/Kambaz/Inbox",
+      icon: FaInbox,
+      iconClass: "fs-1 text-white",
+      textClass: "text-white",
+    },
+    {
+      id: "wd-labs-link",
+      label: "Labs",
+      path: "/Labs",
+      icon: null,
+      iconClass: "",
+      textClass: "text-white",
+    },
+  ];
+
   return (
     <div
       id="wd-kambaz-navigation"
@@ -31,53 +74,18 @@ export default function KambazNavigation() {
         Account
       </Link>
 
-      <Link
-        to="/Kambaz/Dashboard"
-        id="wd-dashboard-link"
-        className="list-group-item text-center border-0 bg-black text-danger"
-      >
-        <AiOutlineDashboard className="fs-1 text-danger" />
-        <br />
-        Dashboard
-      </Link>
-
-      <Link
-        to="/Kambaz/Dashboard"
-        id="wd-course-link"
-        className="list-group-item text-center border-0 bg-black text-white"
-      >
-        <LiaBookSolid className="fs-1 text-danger" />
-        <br />
-        Courses
-      </Link>
-
-      <Link
-        to="/Kambaz/Calendar"
-        id="wd-calendar-link"
-        className="list-group-item text-center border-0 bg-black text-white"
-      >
-        <IoCalendarOutline className="fs-1 text-white" />
-        <br />
-        Calendar
-      </Link>
-
-      <Link
-        to="/Kambaz/Inbox"
-        id="wd-inbox-link"
-        className="list-group-item text-center border-0 bg-black text-white"
-      >
-        <FaInbox className="fs-1 text-white" />
-        <br />
-        Inbox
-      </Link>
-
-      <Link
-        to="/Labs"
-        id="wd-labs-link"
-        className="list-group-item text-center border-0 bg-black text-white"
-      >
-        Labs
-      </Link>
+      {navLinks.map((link) => (
+        <Link
+          key={link.id}
+          to={link.path}
+          id={link.id}
+          className={`list-group-item text-center border-0 bg-black ${link.textClass}`}
+        >
+          {link.icon && link.icon({ className: link.iconClass })}
+          <br />
+          {link.label}
+        </Link>
+      ))}
     </div>
   );
 }

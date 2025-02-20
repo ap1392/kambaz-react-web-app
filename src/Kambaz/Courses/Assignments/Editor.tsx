@@ -1,13 +1,22 @@
 import { Form, Button, Row, Col } from "react-bootstrap";
+import { useParams, Link } from "react-router-dom";
+import * as db from "../../Database";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function AssignmentEditor() {
+  const { cid, aid } = useParams();
+  const assignment = db.assignments.find((a) => a._id === aid);
+
+  if (!assignment) {
+    return <div>Assignment not found</div>;
+  }
+
   return (
     <div id="wd-assignments-editor" className="container mt-3">
       <Form>
         <Form.Group className="mb-3">
           <Form.Label htmlFor="wd-name">Assignment Name</Form.Label>
-          <Form.Control id="wd-name" defaultValue="A1 - ENV + HTML" />
+          <Form.Control id="wd-name" defaultValue={assignment.title} />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -141,10 +150,12 @@ The Kambaz application should include a link to navigate back to the landing pag
         </Row>
 
         <div className="d-flex justify-content-end mt-3">
-          <Button variant="secondary" className="me-2">
-            Cancel
-          </Button>
-          <Button variant="danger">Save</Button>
+          <Link to={`/Kambaz/Courses/${cid}/Assignments`} className="me-2">
+            <Button variant="secondary">Cancel</Button>
+          </Link>
+          <Link to={`/Kambaz/Courses/${cid}/Assignments`}>
+            <Button variant="danger">Save</Button>
+          </Link>
         </div>
       </Form>
     </div>
