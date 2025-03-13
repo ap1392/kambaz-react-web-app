@@ -1,18 +1,22 @@
 import CourseNavigation from "./Navigation";
 import { useParams, Navigate, Route, Routes, useLocation } from "react-router";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 import Modules from "./Modules";
 import Home from "./Home";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import People from "./People/Table";
 import { FaAlignJustify } from "react-icons/fa";
-import { courses } from "../Database";
 
 export default function Courses() {
   const { cid } = useParams();
-  const course = courses.find((course) => course._id === cid);
   const { pathname } = useLocation();
   const section = pathname.split("/")[4];
+  
+  const course = useSelector((state: RootState) =>
+    state.coursesReducer.courses.find((course) => course._id === cid)
+  );
 
   return (
     <div id="wd-courses">

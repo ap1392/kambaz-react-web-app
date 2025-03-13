@@ -1,59 +1,69 @@
-import { Button } from "react-bootstrap";
-import { FaEllipsisV, FaCheckCircle, FaPlus } from "react-icons/fa";
+import { useState } from "react";
 import { useParams } from "react-router";
-import * as db from "../../Database";
+import { useSelector, useDispatch } from "react-redux";
+import ModulesControls from "./ModulesControls";
+import ModuleControlButtons from "./ModuleControlButtons";
+import { addModule, deleteModule, updateModule, editModule } from "./reducer";
+import { RootState } from "../../store";
+import { FormControl } from "react-bootstrap";
 
 export default function Modules() {
   const { cid } = useParams();
-  const courseModules = db.modules.filter((module: any) => module.course === cid);
+  const [moduleName, setModuleName] = useState("");
+  const modules = useSelector((state: RootState) => state.modulesReducer.modules);
+  const dispatch = useDispatch();
+
+  const handleAddModule = () => {
+    dispatch(addModule({ name: moduleName, course: cid }));
+    setModuleName("");
+  };
+
+  const handleDeleteModule = (moduleId: string) => {
+    dispatch(deleteModule(moduleId));
+  };
+
+  const handleEditModule = (moduleId: string) => {
+    dispatch(editModule(moduleId));
+  };
+
+  const handleUpdateModule = (module: any) => {
+    dispatch(updateModule(module));
+  };
 
   return (
     <div>
-      <div className="d-flex justify-content-end mb-3">
-        <Button variant="success" className="me-2">
-          <FaCheckCircle className="me-1" /> Publish All
-        </Button>
-        <Button variant="light" className="me-2">Collapse All</Button>
-        <Button variant="light" className="me-2">View Progress</Button>
-        <Button variant="danger">
-          <FaPlus className="me-1" /> Module
-        </Button>
-      </div>
-
-      <ul className="list-group">
-        {courseModules.map((module: any) => (
-          <li key={module._id} className="list-group-item mb-4">
+      <ModulesControls
+        moduleName={moduleName}
+        setModuleName={setModuleName}
+        addModule={handleAddModule}
+      />
+      <div className="list-group">
+        {modules.filter((module: any) => module.course === cid).map((module: any) => (
+          <div key={module._id} className="list-group-item">
             <div className="d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <FaEllipsisV className="me-3" />
-                <h4 className="mb-0">{module.name}</h4>
-              </div>
-              <FaEllipsisV />
+              {module.editing ? (
+                <FormControl
+                  className="w-50 d-inline-block"
+                  value={module.name}
+                  onChange={(e) => handleUpdateModule({ ...module, name: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleUpdateModule({ ...module, editing: false });
+                    }
+                  }}
+                />
+              ) : (
+                module.name
+              )}
+              <ModuleControlButtons
+                moduleId={module._id}
+                deleteModule={handleDeleteModule}
+                editModule={handleEditModule}
+              />
             </div>
-
-            {module.lessons && (
-              <ul className="list-group mt-2">
-                {module.lessons.map((lesson: any) => (
-                  <li key={lesson._id} className="list-group-item">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div className="d-flex align-items-center">
-                        <FaEllipsisV className="me-3" />
-                        <div>
-                          <h5 className="mb-0">{lesson.name}</h5>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center">
-                        <FaCheckCircle className="text-success me-2" />
-                        <FaEllipsisV />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

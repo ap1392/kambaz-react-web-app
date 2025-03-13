@@ -1,16 +1,34 @@
+import { useState } from "react";
+import { Button } from "react-bootstrap";
+import ModuleEditor from "./ModuleEditor";
 import { FaPlus } from "react-icons/fa6";
 import GreenCheckmark from "./GreenCheckmark";
 
-export default function ModulesControls() {
+export default function ModulesControls({
+  moduleName, setModuleName, addModule
+}: {
+  moduleName: string;
+  setModuleName: (title: string) => void;
+  addModule: () => void;
+}) {
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   return (
     <div id="wd-modules-controls" className="text-nowrap">
-      <button
-        id="wd-add-module-btn"
-        className="btn btn-lg btn-danger me-1 float-end"
-      >
+      <Button variant="danger" onClick={handleShow}>
         <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
         Module
-      </button>
+      </Button>
+      <ModuleEditor 
+        show={show}
+        handleClose={handleClose}
+        dialogTitle="Add Module"
+        moduleName={moduleName}
+        setModuleName={setModuleName}
+        addModule={addModule}
+      />
       <div className="dropdown d-inline me-1 float-end">
         <button
           id="wd-publish-all-btn"

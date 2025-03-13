@@ -3,21 +3,34 @@ import Account from "./Account";
 import Dashboard from "./Dashboard";
 import KambazNavigation from "./Navigation";
 import Courses from "./Courses";
+import { Provider } from 'react-redux';
+import store from './store';
+import ProtectedRoute from "./Account/ProtectedRoute";
 
 export default function Kambaz() {
   return (
-    <div id="wd-kambaz" className="d-flex">
-      <KambazNavigation />
-      <div className="flex-grow-1" style={{ marginLeft: 120 }}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/Kambaz/Account" />} />
-          <Route path="/Account/*" element={<Account />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
-          <Route path="/Courses/:cid/*" element={<Courses />} />
-          <Route path="/Calendar" element={<h1>Calendar</h1>} />
-          <Route path="/Inbox" element={<h1>Inbox</h1>} />
-        </Routes>
+    <Provider store={store}>
+      <div id="wd-kambaz" className="d-flex">
+        <KambazNavigation />
+        <div className="flex-grow-1" style={{ marginLeft: 120 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/Kambaz/Account" />} />
+            <Route path="/Account/*" element={<Account />} />
+            <Route path="/Dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/Courses/:cid/*" element={
+              <ProtectedRoute>
+                <Courses />
+              </ProtectedRoute>
+            } />
+            <Route path="/Calendar" element={<h1>Calendar</h1>} />
+            <Route path="/Inbox" element={<h1>Inbox</h1>} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Provider>
   );
 }
