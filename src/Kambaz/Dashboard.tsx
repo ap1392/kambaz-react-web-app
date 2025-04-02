@@ -8,7 +8,6 @@ import { addCourse, deleteCourse, updateCourse } from "./Courses/reducer";
 import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
-import * as db from "./Database";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -95,13 +94,7 @@ export default function Dashboard() {
 
   const displayedCourses = showAllCourses 
     ? courses 
-    : courses.filter((course) => 
-        enrollments.some(
-          (enrollment) => 
-            enrollment.user === currentUser?._id && 
-            enrollment.course === course._id
-        )
-      );
+    : courses;
 
   const isFaculty = currentUser?.role === "FACULTY";
 
