@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "./store";
 import { Course } from "./Courses/reducer";
-import { addCourse, deleteCourse, updateCourse } from "./Courses/reducer";
+import { addCourse, deleteCourse, updateCourse as updateCourseAction } from "./Courses/reducer";
 import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
 import { findMyCourses, createCourse } from "./Account/client";
-import { fetchAllCourses, deleteCourse as deleteServerCourse } from "./Courses/client";
+import { fetchAllCourses, deleteCourse as deleteServerCourse, updateCourse as updateServerCourse } from "./Courses/client";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -79,17 +79,24 @@ export default function Dashboard() {
     }
   };
 
-  const handleUpdateCourse = () => {
+  const handleUpdateCourse = async () => {
     if (course._id) {
-      dispatch(updateCourse(course));
-      setCourse({
-        _id: "",
-        name: "New Course",
-        number: "New Number",
-        startDate: "2023-09-10",
-        endDate: "2023-12-15",
-        description: "New Description"
-      });
+      try {
+        const updatedCourse = await updateServerCourse(course);
+        dispatch(updateCourseAction(updatedCourse));
+        setMyCourses(myCourses.map(c => c._id === updatedCourse._id ? updatedCourse : c));
+        setAllCourses(allCourses.map(c => c._id === updatedCourse._id ? updatedCourse : c));
+        setCourse({
+          _id: "",
+          name: "New Course",
+          number: "New Number",
+          startDate: "2023-09-10",
+          endDate: "2023-12-15",
+          description: "New Description"
+        });
+      } catch (error) {
+        console.error("Failed to update course:", error);
+      }
     }
   };
 

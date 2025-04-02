@@ -9,4 +9,10 @@ export default function CourseRoutes(app) {
     const status = dao.deleteCourse(courseId);
     res.send(status);
   });
+  app.put("/api/courses/:courseId", (req, res) => {
+    const { courseId } = req.params;
+    const courseUpdates = req.body;
+    const status = dao.updateCourse(courseId, courseUpdates);
+    res.send(status);
+  });
 }
