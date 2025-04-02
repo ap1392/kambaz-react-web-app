@@ -7,6 +7,7 @@ import cors from 'cors';
 import "dotenv/config";
 import session from "express-session";
 
+console.log(process.env.NETLIFY_URL);
 const app = express()
 
 app.use(cors({
