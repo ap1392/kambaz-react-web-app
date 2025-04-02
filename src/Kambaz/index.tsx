@@ -12,7 +12,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 
 
-// New inner component to contain the logic and JSX
 function KambazContent() {
   const [courses, setCourses] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
@@ -66,11 +65,9 @@ function KambazContent() {
 
 
 export default function Kambaz() {
-  // Removed state, selector, effect, and fetchCourses from here
   return (
     <Provider store={store}>
       <Session>
-        {/* Render the new inner component here */}
         <KambazContent />
       </Session>
     </Provider>

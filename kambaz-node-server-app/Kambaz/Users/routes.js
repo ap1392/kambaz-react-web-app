@@ -7,8 +7,9 @@ export default function UserRoutes(app) {
     let { userId } = req.params;
     if (userId === "current") {
       const currentUser = req.session["currentUser"];
+      console.log("Current user", currentUser);
       if (!currentUser) {
-        res.sendStatus(401);
+        res.sendStatus(401, "Unauthorized for this operation");
         return;
       }
       userId = currentUser._id;
@@ -53,6 +54,7 @@ export default function UserRoutes(app) {
     const currentUser = dao.findUserByCredentials(username, password);
     if (currentUser) {
       req.session["currentUser"] = currentUser;
+      console.log("Current user signed in", currentUser);
     res.json(currentUser);
     } else {
       res.status(401).json({ message: "Unable to login. Try again later." });

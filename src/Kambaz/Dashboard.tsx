@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Button, FormControl } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -8,13 +8,39 @@ import { addCourse, deleteCourse, updateCourse } from "./Courses/reducer";
 import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
+import { findMyCourses } from "./Account/client";
+import { fetchAllCourses } from "./Courses/client";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state: RootState) => state.accountReducer);
-  const courses = useSelector((state: RootState) => state.coursesReducer.courses);
+  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const { showAllCourses, enrollments } = useSelector((state: RootState) => state.enrollmentsReducer);
   
+  useEffect(() => {
+    findMyCourses()
+      .then((courses) => {
+        console.log("My courses", courses);
+        setMyCourses(courses);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch my courses:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (showAllCourses) {
+      fetchAllCourses()
+        .then((courses) => {
+          setAllCourses(courses);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch all courses:", error);
+        });
+    }
+  }, [showAllCourses]);
+
   const [course, setCourse] = useState<Course>({
     _id: "",
     name: "New Course",
@@ -94,18 +120,9 @@ export default function Dashboard() {
 
   const getDisplayedCourses = () => {
     if (showAllCourses) {
-      return courses;
+      return allCourses;
     }
-    if (!currentUser) {
-      // If not logged in and trying to see "My Courses", show none.
-      return []; 
-    }
-    // Filter courses to show only those the current user is enrolled in.
-    return courses.filter(course => 
-      enrollments.some(enrollment => 
-        enrollment.user === currentUser._id && enrollment.course === course._id
-      )
-    );
+    return myCourses;
   };
 
   const displayedCourses = getDisplayedCourses();
@@ -156,7 +173,7 @@ export default function Dashboard() {
       <h2 id="wd-dashboard-published">Published Courses</h2> <hr />
       <div id="wd-dashboard-courses">
         <Row xs={1} md={5} className="g-4">
-          {displayedCourses.map((course) => (
+          {displayedCourses.map((course: Course) => (
             <Col key={course._id} className="wd-dashboard-course" style={{ width: "300px" }}>
               <Card>
                 {enrollments.some(
