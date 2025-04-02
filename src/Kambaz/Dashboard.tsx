@@ -8,7 +8,7 @@ import { addCourse, deleteCourse, updateCourse } from "./Courses/reducer";
 import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
-import { findMyCourses } from "./Account/client";
+import { findMyCourses, createCourse } from "./Account/client";
 import { fetchAllCourses } from "./Courses/client";
 
 export default function Dashboard() {
@@ -49,17 +49,23 @@ export default function Dashboard() {
     description: "New Description"
   });
 
-  const handleAddCourse = () => {
+  const handleAddCourse = async () => {
     const { _id, ...newCourse } = course;
-    dispatch(addCourse(newCourse));
-    setCourse({
-      _id: "",
-      name: "New Course",
-      number: "New Number",
-      startDate: "2023-09-10",
-      endDate: "2023-12-15",
-      description: "New Description"
-    });
+    try {
+      const createdCourse = await createCourse(newCourse);
+      dispatch(addCourse(createdCourse));
+      setMyCourses([...myCourses, createdCourse]);
+      setCourse({
+        _id: "",
+        name: "New Course",
+        number: "New Number",
+        startDate: "2023-09-10",
+        endDate: "2023-12-15",
+        description: "New Description"
+      });
+    } catch (error) {
+      console.error("Failed to create course:", error);
+    }
   };
 
   const handleDeleteCourse = (courseId: string) => {
