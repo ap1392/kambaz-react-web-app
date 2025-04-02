@@ -15,18 +15,3 @@ export const findUserByCredentials = (username, password) =>
   users.find( (user) => user.username === username && user.password === password );
 export const updateUser = (userId, user) => (users = users.map((u) => (u._id === userId ? user : u)));
 export const deleteUser = (userId) => (users = users.filter((u) => u._id !== userId));
-const findCoursesForEnrolledUser = (req, res) => {
-  let { userId } = req.params;
-  if (userId === "current") {
-    const currentUser = req.session["currentUser"];
-    if (!currentUser) {
-      res.sendStatus(401);
-      return;
-    }
-    userId = currentUser._id;
-  }
-  const courses = courseDao.findCoursesForEnrolledUser(userId);
-  res.json(courses);
-};
-
-export { findCoursesForEnrolledUser };

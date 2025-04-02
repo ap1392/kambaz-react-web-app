@@ -92,9 +92,23 @@ export default function Dashboard() {
     }
   };
 
-  const displayedCourses = showAllCourses 
-    ? courses 
-    : courses;
+  const getDisplayedCourses = () => {
+    if (showAllCourses) {
+      return courses;
+    }
+    if (!currentUser) {
+      // If not logged in and trying to see "My Courses", show none.
+      return []; 
+    }
+    // Filter courses to show only those the current user is enrolled in.
+    return courses.filter(course => 
+      enrollments.some(enrollment => 
+        enrollment.user === currentUser._id && enrollment.course === course._id
+      )
+    );
+  };
+
+  const displayedCourses = getDisplayedCourses();
 
   const isFaculty = currentUser?.role === "FACULTY";
 
