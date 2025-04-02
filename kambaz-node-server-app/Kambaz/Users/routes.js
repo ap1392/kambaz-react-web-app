@@ -7,7 +7,6 @@ export default function UserRoutes(app) {
     let { userId } = req.params;
     if (userId === "current") {
       const currentUser = req.session["currentUser"];
-      console.log("Current user", currentUser);
       if (!currentUser) {
         res.sendStatus(401, "Unauthorized for this operation");
         return;
@@ -22,6 +21,7 @@ export default function UserRoutes(app) {
     const currentUser = req.session["currentUser"];
     const newCourse = courseDao.createCourse(req.body);
     enrollmentsDao.enrollUserInCourse(currentUser._id, newCourse._id);
+    console.log("New course created", newCourse);
     res.json(newCourse);
   };
   
@@ -54,7 +54,6 @@ export default function UserRoutes(app) {
     const currentUser = dao.findUserByCredentials(username, password);
     if (currentUser) {
       req.session["currentUser"] = currentUser;
-      console.log("Current user signed in", currentUser);
     res.json(currentUser);
     } else {
       res.status(401).json({ message: "Unable to login. Try again later." });

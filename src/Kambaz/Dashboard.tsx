@@ -21,7 +21,6 @@ export default function Dashboard() {
   useEffect(() => {
     findMyCourses()
       .then((courses) => {
-        console.log("My courses", courses);
         setMyCourses(courses);
       })
       .catch((error) => {
