@@ -31,6 +31,10 @@ export default function Modules() {
     await modulesClient.deleteModule(moduleId);
     dispatch(deleteModule(moduleId));
   };
+  const saveModule = async (module: any) => {
+    await modulesClient.updateModule(module);
+    dispatch(updateModule(module));
+  };
 
 
   const handleAddModule = () => {
@@ -68,7 +72,7 @@ export default function Modules() {
                   onChange={(e) => handleUpdateModule({ ...module, name: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      handleUpdateModule({ ...module, editing: false });
+                      saveModule({ ...module, editing: false });
                     }
                   }}
                 />
