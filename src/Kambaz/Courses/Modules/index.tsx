@@ -17,6 +17,12 @@ export default function Modules() {
     const modules = await coursesClient.findModulesForCourse(cid as string);
     dispatch(setModules(modules));
   };
+  const createModuleForCourse = async () => {
+    if (!cid) return;
+    const newModule = { name: moduleName, course: cid };
+    const module = await coursesClient.createModuleForCourse(cid, newModule);
+    dispatch(addModule(module));
+  };
   useEffect(() => {
     fetchModules();
   }, []);
@@ -44,7 +50,7 @@ export default function Modules() {
       <ModulesControls
         moduleName={moduleName}
         setModuleName={setModuleName}
-        addModule={handleAddModule}
+        addModule={createModuleForCourse}
       />
       <div className="list-group">
         {modules.map((module: any) => (
