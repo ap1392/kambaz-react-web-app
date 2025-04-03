@@ -36,3 +36,10 @@ export const createAssignmentForCourse = async (courseId: string, assignment: an
   );
   return response.data;
 };
+export const updateAssignment = async (courseId: string, assignmentId: string, assignment: any) => {
+  const response = await axios.put(
+    `${COURSES_API}/${courseId}/assignments/${assignmentId}`,
+    assignment
+  );
+  return response.data;
+};
