@@ -7,6 +7,7 @@ import { setModules, addModule, deleteModule, updateModule, editModule } from ".
 import { RootState } from "../../store";
 import { FormControl } from "react-bootstrap";
 import * as coursesClient from "../../Courses/client";
+import * as modulesClient from "./client";
 
 export default function Modules() {
   const { cid } = useParams();
@@ -26,6 +27,10 @@ export default function Modules() {
   useEffect(() => {
     fetchModules();
   }, []);
+  const removeModule = async (moduleId: string) => {
+    await modulesClient.deleteModule(moduleId);
+    dispatch(deleteModule(moduleId));
+  };
 
 
   const handleAddModule = () => {
@@ -72,7 +77,7 @@ export default function Modules() {
               )}
               <ModuleControlButtons
                 moduleId={module._id}
-                deleteModule={handleDeleteModule}
+                deleteModule={(moduleId) => removeModule(moduleId)}
                 editModule={handleEditModule}
               />
             </div>
