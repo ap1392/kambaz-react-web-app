@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import ModulesControls from "./ModulesControls";
 import ModuleControlButtons from "./ModuleControlButtons";
-import { addModule, deleteModule, updateModule, editModule } from "./reducer";
+import { setModules, addModule, deleteModule, updateModule, editModule } from "./reducer";
 import { RootState } from "../../store";
 import { FormControl } from "react-bootstrap";
+import * as coursesClient from "../../Courses/client";
 
 export default function Modules() {
   const { cid } = useParams();
   const [moduleName, setModuleName] = useState("");
   const modules = useSelector((state: RootState) => state.modulesReducer.modules);
   const dispatch = useDispatch();
+  const fetchModules = async () => {
+    const modules = await coursesClient.findModulesForCourse(cid as string);
+    dispatch(setModules(modules));
+  };
+  useEffect(() => {
+    fetchModules();
+  }, []);
+
 
   const handleAddModule = () => {
     dispatch(addModule({ name: moduleName, course: cid }));
@@ -38,7 +47,7 @@ export default function Modules() {
         addModule={handleAddModule}
       />
       <div className="list-group">
-        {modules.filter((module: any) => module.course === cid).map((module: any) => (
+        {modules.map((module: any) => (
           <div key={module._id} className="list-group-item">
             <div className="d-flex justify-content-between align-items-center">
               {module.editing ? (
