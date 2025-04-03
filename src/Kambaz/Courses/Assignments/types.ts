@@ -7,4 +7,5 @@ export interface Assignment {
   availableFromDate: string;
   availableUntilDate: string;
   course: string;
+  editing?: boolean;
 } 

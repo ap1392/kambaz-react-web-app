@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaSearch, FaPlus, FaTrash } from "react-icons/fa";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router";
@@ -6,7 +6,8 @@ import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../store";
 import { Assignment } from "./types";
-import { deleteAssignment } from "./reducer";
+import { deleteAssignment, setAssignments } from "./reducer";
+import * as coursesClient from "../client";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Assignments() {
@@ -21,6 +22,16 @@ export default function Assignments() {
       (assignment: Assignment) => assignment.course === cid
     )
   );
+
+  const fetchAssignments = async () => {
+    if (!cid) return;
+    const assignments = await coursesClient.findAssignmentsForCourse(cid);
+    dispatch(setAssignments(assignments));
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [cid]);
 
   const handleAddAssignment = () => {
     navigate(`/Kambaz/Courses/${cid}/Assignments/new`);

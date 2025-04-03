@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { addAssignment, updateAssignment } from "./reducer";
 import { Assignment } from "./types";
+import * as client from "../client";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function AssignmentEditor() {
@@ -33,11 +34,13 @@ export default function AssignmentEditor() {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (existingAssignment) {
       dispatch(updateAssignment({ ...existingAssignment, ...assignment }));
     } else {
-      dispatch(addAssignment(assignment));
+      if (!cid) return;
+      const newAssignment = await client.createAssignmentForCourse(cid, assignment);
+      dispatch(addAssignment(newAssignment));
     }
     navigate(`/Kambaz/Courses/${cid}/Assignments`);
   };
