@@ -46,4 +46,15 @@ export default function CourseRoutes(app) {
     const newAssignment = assignmentsDao.createAssignment(assignment);
     res.json(newAssignment);
   });
+  app.put("/api/courses/:courseId/assignments/:assignmentId", (req, res) => {
+    const { assignmentId } = req.params;
+    const updates = req.body;
+    const status = assignmentsDao.updateAssignment(assignmentId, updates);
+    res.json(status);
+  });
+  app.delete("/api/courses/:courseId/assignments/:assignmentId", (req, res) => {
+    const { assignmentId } = req.params;
+    const status = assignmentsDao.deleteAssignment(assignmentId);
+    res.json(status);
+  });
 }
