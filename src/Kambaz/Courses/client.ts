@@ -43,3 +43,9 @@ export const updateAssignment = async (courseId: string, assignmentId: string, a
   );
   return response.data;
 };
+export const deleteAssignment = async (courseId: string, assignmentId: string) => {
+  const response = await axios.delete(
+    `${COURSES_API}/${courseId}/assignments/${assignmentId}`
+  );
+  return response.data;
+};

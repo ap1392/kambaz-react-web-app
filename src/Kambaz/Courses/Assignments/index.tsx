@@ -42,8 +42,9 @@ export default function Assignments() {
     setShowDeleteDialog(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (assignmentToDelete?._id) {
+  const handleDeleteConfirm = async () => {
+    if (assignmentToDelete?._id && cid) {
+      await coursesClient.deleteAssignment(cid, assignmentToDelete._id);
       dispatch(deleteAssignment(assignmentToDelete._id));
     }
     setShowDeleteDialog(false);
