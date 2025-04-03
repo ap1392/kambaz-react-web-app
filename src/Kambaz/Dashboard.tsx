@@ -9,7 +9,14 @@ import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
 import { findMyCourses, createCourse } from "./Account/client";
-import { fetchAllCourses, deleteCourse as deleteServerCourse, updateCourse as updateServerCourse } from "./Courses/client";
+import { 
+  fetchAllCourses, 
+  deleteCourse as deleteServerCourse, 
+  updateCourse as updateServerCourse,
+  enrollInCourse as enrollInCourseAPI,
+  unenrollFromCourse as unenrollFromCourseAPI,
+  getUserEnrollments
+} from "./Courses/client";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -27,6 +34,24 @@ export default function Dashboard() {
         console.error("Failed to fetch my courses:", error);
       });
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      getUserEnrollments(currentUser._id)
+        .then((enrollments: { user: string; course: string }[]) => {
+          // Dispatch each enrollment to the Redux store
+          enrollments.forEach((enrollment) => {
+            dispatch(enrollInCourse({ 
+              userId: enrollment.user, 
+              courseId: enrollment.course 
+            }));
+          });
+        })
+        .catch((error) => {
+          console.error("Failed to fetch enrollments:", error);
+        });
+    }
+  }, [currentUser, dispatch]);
 
   useEffect(() => {
     if (showAllCourses) {
@@ -100,17 +125,23 @@ export default function Dashboard() {
     }
   };
 
-  const handleEnrollmentToggle = (courseId: string) => {
+  const handleEnrollmentToggle = async (courseId: string) => {
     if (!currentUser) return;
 
     const isEnrolled = enrollments.some(
       (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
     );
 
-    if (isEnrolled) {
-      dispatch(unenrollFromCourse({ userId: currentUser._id, courseId }));
-    } else {
-      dispatch(enrollInCourse({ userId: currentUser._id, courseId }));
+    try {
+      if (isEnrolled) {
+        await unenrollFromCourseAPI(currentUser._id, courseId);
+        dispatch(unenrollFromCourse({ userId: currentUser._id, courseId }));
+      } else {
+        const enrollment = await enrollInCourseAPI(currentUser._id, courseId);
+        dispatch(enrollInCourse({ userId: currentUser._id, courseId }));
+      }
+    } catch (error) {
+      console.error("Failed to toggle enrollment:", error);
     }
   };
 

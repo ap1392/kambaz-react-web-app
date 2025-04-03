@@ -49,3 +49,21 @@ export const deleteAssignment = async (courseId: string, assignmentId: string) =
   );
   return response.data;
 };
+export const enrollInCourse = async (userId: string, courseId: string) => {
+  const response = await axios.post(
+    `${REMOTE_SERVER}/api/users/${userId}/enrollments/${courseId}`
+  );
+  return response.data;
+};
+export const unenrollFromCourse = async (userId: string, courseId: string) => {
+  const response = await axios.delete(
+    `${REMOTE_SERVER}/api/users/${userId}/enrollments/${courseId}`
+  );
+  return response.data;
+};
+export const getUserEnrollments = async (userId: string) => {
+  const response = await axios.get(
+    `${REMOTE_SERVER}/api/users/${userId}/enrollments`
+  );
+  return response.data;
+};
