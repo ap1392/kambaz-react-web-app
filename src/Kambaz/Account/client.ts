@@ -9,6 +9,12 @@ export const findAllUsers = async () => {
   return response.data;
 };
 
+export const findUsersByRole = async (role: string) => {
+  const response = await
+    axios.get(`${USERS_API}?role=${role}`);
+  return response.data;
+};
+
 export const findMyCourses = async () => {
   const { data } = await axiosWithCredentials.get(`${USERS_API}/current/courses`);
   return data;
