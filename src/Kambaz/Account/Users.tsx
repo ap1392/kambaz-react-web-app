@@ -23,13 +23,17 @@ export default function Users() {
    fetchUsers();
  }, [uid]);
  return (
-   <div>
-     <h3>Users</h3>
-     <select value={role} onChange={(e) =>filterUsersByRole(e.target.value)}
-              className="form-select float-start w-25 wd-select-role" >
-        <option value="">All Roles</option>    <option value="STUDENT">Students</option>
-        <option value="TA">Assistants</option> <option value="FACULTY">Faculty</option>
-        <option value="ADMIN">Administrators</option>
-      </select>
+   <div className="p-3">
+     <div className="d-flex justify-content-between align-items-center mb-3">
+       <h3>Users</h3>
+       <select value={role} onChange={(e) => filterUsersByRole(e.target.value)}
+               className="form-select w-50 wd-select-role">
+         <option value="">All Roles</option>    <option value="STUDENT">Students</option>
+         <option value="TA">Assistants</option> <option value="FACULTY">Faculty</option>
+         <option value="ADMIN">Administrators</option>
+       </select>
+     </div>
+     <PeopleTable users={users} />
    </div>
-);}
+ );
+}
