@@ -1,10 +1,7 @@
 import { Table } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
-import * as db from "../../Database";
 
-export default function PeopleTable() {
-  const { users } = db;
-
+export default function PeopleTable({ users = [] }: { users?: any[] }) {
   return (
     <div id="wd-people-table">
       <Table striped>

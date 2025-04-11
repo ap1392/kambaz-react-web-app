@@ -4,6 +4,11 @@ const axiosWithCredentials = axios.create({ withCredentials: true });
 const REMOTE_SERVER = process.env.REACT_APP_REMOTE_SERVER;
 export const USERS_API = `${REMOTE_SERVER}/api/users`;
 
+export const findAllUsers = async () => {
+  const response = await axiosWithCredentials.get(USERS_API);
+  return response.data;
+};
+
 export const findMyCourses = async () => {
   const { data } = await axiosWithCredentials.get(`${USERS_API}/current/courses`);
   return data;
