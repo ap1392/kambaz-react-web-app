@@ -6,7 +6,7 @@ import { setCurrentUser } from "./reducer";
 import { FormControl } from "react-bootstrap";
 
 export default function Signup() {
-  const [user, setUser] = useState<any>({});
+  const [user, setUser] = useState<any>({ username: "", password: "" });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const signup = async () => {
