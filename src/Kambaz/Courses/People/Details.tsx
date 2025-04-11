@@ -8,6 +8,13 @@ export default function PeopleDetails() {
   const { uid} = useParams();
   const [user, setUser] = useState<any>({});
   const navigate = useNavigate();
+
+  const deleteUser = async (uid: string) => {
+    if (!uid) return;
+    await client.deleteUser(uid);
+    navigate(-1);
+  };
+
   const fetchUser = async () => {
     console.log("Fetching user with ID:", uid);
     if (!uid) return;
@@ -27,4 +34,10 @@ export default function PeopleDetails() {
       <b>Roles:</b>           <span className="wd-roles">         {user.role}         </span> <br />
       <b>Login ID:</b>        <span className="wd-login-id">      {user.loginId}      </span> <br />
       <b>Section:</b>         <span className="wd-section">       {user.section}      </span> <br />
-      <b>Total Activity:</b>  <span className="wd-total-activity">{user.totalActivity}</span> </div> ); }
+      <b>Total Activity:</b>  <span className="wd-total-activity">{user.totalActivity}</span> <hr />
+      <button onClick={() => deleteUser(uid)} className="btn btn-danger float-end wd-delete" > Delete </button>
+      <button onClick={() => navigate(-1)}
+              className="btn btn-secondary float-start float-end me-2 wd-cancel" > Cancel </button>
+    </div>
+  );
+}
