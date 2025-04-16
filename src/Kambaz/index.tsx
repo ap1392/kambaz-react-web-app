@@ -10,6 +10,7 @@ import Session from "./Account/Session";
 import * as userClient from "./Account/client";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import * as courseClient from "./Courses/client";
 
 
 function KambazContent() {
@@ -18,7 +19,7 @@ function KambazContent() {
   
   const fetchCourses = async () => {
     try {
-      const courses = await userClient.findMyCourses();
+      const courses = await courseClient.fetchAllCourses();
       setCourses(courses);
     } catch (error) {
       console.error(error);
