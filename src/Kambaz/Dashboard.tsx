@@ -8,14 +8,11 @@ import { addCourse, deleteCourse, updateCourse as updateCourseAction } from "./C
 import { Enrollment } from "./types";
 import { User } from "./Account/reducer";
 import { toggleShowAllCourses, enrollInCourse, unenrollFromCourse } from "./Courses/enrollmentsReducer";
-import { findMyCourses, createCourse } from "./Account/client";
+import { createCourse, enrollIntoCourse, unenrollFromCourse as unenrollFromAccountClient, findCoursesForUser } from "./Account/client";
 import { 
   fetchAllCourses, 
   deleteCourse as deleteServerCourse, 
   updateCourse as updateServerCourse,
-  enrollInCourse as enrollInCourseAPI,
-  unenrollFromCourse as unenrollFromCourseAPI,
-  getUserEnrollments
 } from "./Courses/client";
 
 export default function Dashboard() {
@@ -28,7 +25,7 @@ export default function Dashboard() {
   
   useEffect(() => {
     if (currentUser?.role === "FACULTY") {
-      findMyCourses()
+      findCoursesForUser(currentUser._id)
         .then((courses) => {
           setMyCourses(courses);
         })
@@ -48,22 +45,24 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (currentUser) {
-      getUserEnrollments(currentUser._id)
-        .then((userEnrollments: { user: string; course: string }[]) => {
-          userEnrollments.forEach((enrollment) => {
-            if (!enrollments.some(e => e.user === enrollment.user && e.course === enrollment.course)) {
-              dispatch(enrollInCourse({ 
-                userId: enrollment.user, 
-                courseId: enrollment.course 
-              }));
+      console.log("[Dashboard Load] Fetching enrolled courses for user:", currentUser._id);
+      findCoursesForUser(currentUser._id)
+        .then((enrolledCourses: Course[]) => {
+          console.log("[Dashboard Load] Received enrolled courses from API:", enrolledCourses);
+          enrolledCourses.forEach((course) => {
+            const enrollmentData = { userId: currentUser._id, courseId: course._id };
+            console.log("[Dashboard Load] Checking Redux state for:", enrollmentData, "Current Redux enrollments:", enrollments);
+            if (!enrollments.some(e => e.user === currentUser._id && e.course === course._id)) {
+              console.log("[Dashboard Load] Dispatching enrollInCourse for:", enrollmentData);
+              dispatch(enrollInCourse(enrollmentData));
             }
           });
         })
         .catch((error) => {
-          console.error("Failed to fetch enrollments:", error);
+          console.error("Failed to fetch enrolled courses:", error);
         });
     }
-  }, [currentUser, dispatch]);
+  }, [currentUser, dispatch, enrollments]);
 
   const [course, setCourse] = useState<Course>({
     _id: "",
@@ -134,10 +133,10 @@ export default function Dashboard() {
 
     try {
       if (isEnrolled) {
-        await unenrollFromCourseAPI(currentUser._id, courseId);
+        await unenrollFromAccountClient(currentUser._id, courseId);
         dispatch(unenrollFromCourse({ userId: currentUser._id, courseId }));
       } else {
-        const enrollment = await enrollInCourseAPI(currentUser._id, courseId);
+        const enrollment = await enrollIntoCourse(currentUser._id, courseId);
         dispatch(enrollInCourse({ userId: currentUser._id, courseId }));
       }
     } catch (error) {
@@ -169,16 +168,25 @@ export default function Dashboard() {
   };
 
   const getDisplayedCourses = () => {
+    console.log("[Display Logic] getDisplayedCourses called. showAllCourses:", showAllCourses);
     if (showAllCourses) {
+      console.log("[Display Logic] Returning allCourses:", allCourses);
       return allCourses;
     } else {
-      if (!currentUser) return [];
+      if (!currentUser) {
+        console.log("[Display Logic] No current user, returning empty array.");
+        return [];
+      }
+      console.log("[Display Logic] Filtering based on Redux enrollments:", enrollments);
       const enrolledCourseIds = new Set(
         enrollments
           .filter((enrollment) => enrollment.user === currentUser._id)
           .map((enrollment) => enrollment.course)
       );
-      return allCourses.filter((c) => enrolledCourseIds.has(c._id));
+      console.log("[Display Logic] Constructed enrolledCourseIds Set:", enrolledCourseIds);
+      const filteredCourses = allCourses.filter((c) => enrolledCourseIds.has(c._id));
+      console.log("[Display Logic] Returning filtered 'My Enrolled Courses':", filteredCourses);
+      return filteredCourses;
     }
   };
 
