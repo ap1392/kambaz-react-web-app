@@ -45,15 +45,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (currentUser) {
-      console.log("[Dashboard Load] Fetching enrolled courses for user:", currentUser._id);
       findCoursesForUser(currentUser._id)
         .then((enrolledCourses: Course[]) => {
-          console.log("[Dashboard Load] Received enrolled courses from API:", enrolledCourses);
           enrolledCourses.forEach((course) => {
             const enrollmentData = { userId: currentUser._id, courseId: course._id };
-            console.log("[Dashboard Load] Checking Redux state for:", enrollmentData, "Current Redux enrollments:", enrollments);
             if (!enrollments.some(e => e.user === currentUser._id && e.course === course._id)) {
-              console.log("[Dashboard Load] Dispatching enrollInCourse for:", enrollmentData);
               dispatch(enrollInCourse(enrollmentData));
             }
           });
@@ -168,24 +164,18 @@ export default function Dashboard() {
   };
 
   const getDisplayedCourses = () => {
-    console.log("[Display Logic] getDisplayedCourses called. showAllCourses:", showAllCourses);
     if (showAllCourses) {
-      console.log("[Display Logic] Returning allCourses:", allCourses);
       return allCourses;
     } else {
       if (!currentUser) {
-        console.log("[Display Logic] No current user, returning empty array.");
         return [];
       }
-      console.log("[Display Logic] Filtering based on Redux enrollments:", enrollments);
       const enrolledCourseIds = new Set(
         enrollments
           .filter((enrollment) => enrollment.user === currentUser._id)
           .map((enrollment) => enrollment.course)
       );
-      console.log("[Display Logic] Constructed enrolledCourseIds Set:", enrolledCourseIds);
       const filteredCourses = allCourses.filter((c) => enrolledCourseIds.has(c._id));
-      console.log("[Display Logic] Returning filtered 'My Enrolled Courses':", filteredCourses);
       return filteredCourses;
     }
   };
