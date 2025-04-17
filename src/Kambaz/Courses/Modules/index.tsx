@@ -14,6 +14,13 @@ export default function Modules() {
   const [moduleName, setModuleName] = useState("");
   const modules = useSelector((state: RootState) => state.modulesReducer.modules);
   const dispatch = useDispatch();
+  const fetchModulesForCourse = async () => {
+    const modules = await coursesClient.findModulesForCourse(cid!);
+    dispatch(setModules(modules));
+  };
+  useEffect(() => {
+    fetchModulesForCourse();
+  }, [cid]); 
   const fetchModules = async () => {
     const modules = await coursesClient.findModulesForCourse(cid as string);
     dispatch(setModules(modules));
