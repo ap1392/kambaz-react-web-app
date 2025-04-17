@@ -1,9 +1,29 @@
+import { useState, useEffect } from "react";
 import { Table } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import PeopleDetails from "./Details";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import * as accountClient from "../../Account/client";
 
-export default function PeopleTable({ users = [] }: { users?: any[] }) {
+export default function PeopleTable({ users: initialUsers }: { users?: any[] }) {
+  const [users, setUsers] = useState<any[]>(initialUsers || []);
+  const { cid } = useParams(); // cid is the courseId
+
+  const fetchUsers = async () => {
+    if (cid && !initialUsers) {
+      const fetchedUsers = await accountClient.findUsersForCourse(cid);
+      setUsers(fetchedUsers);
+    }
+  };
+
+  useEffect(() => {
+    if (initialUsers) {
+      setUsers(initialUsers);
+    } else {
+      fetchUsers();
+    }
+  }, [cid, initialUsers]);
+
   return (
     <div id="wd-people-table">
       <PeopleDetails />
