@@ -3,9 +3,10 @@ import { useParams, NavLink, useLocation } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup, addPiazzaFolderForCourse, deletePiazzaFolderFromCourse, renamePiazzaFolderForCourse } from '../client';
+import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup, updatePiazzaPost, deletePiazzaPost, addPiazzaFolderForCourse, deletePiazzaFolderFromCourse, renamePiazzaFolderForCourse } from '../client';
 import { FormEvent } from 'react';
 import { findUsersForCourse } from '../../Account/client';
+import { Dropdown } from 'react-bootstrap';
 
 export default function Piazza() {
   const [isCreating, setIsCreating] = useState(false);
@@ -27,6 +28,10 @@ export default function Piazza() {
   const location = useLocation();
   const isManage = location.pathname.endsWith('/Manage');
   const course = useSelector((state: RootState) => state.coursesReducer.courses.find(c => c._id === cid));
+  const [isEditingPost, setIsEditingPost] = useState<boolean>(false);
+  const [editSummary, setEditSummary] = useState<string>('');
+  const [editDetails, setEditDetails] = useState<string>('');
+  const [editFolders, setEditFolders] = useState<string[]>([]);
   useEffect(() => {
     if (cid) {
       findPiazzaFoldersForCourse(cid).then(setFolders);
@@ -38,6 +43,13 @@ export default function Piazza() {
       findPiazzaPostById(selectedPostId).then(setSelectedPost);
     }
   }, [selectedPostId]);
+  useEffect(() => {
+    if (selectedPost) {
+      setEditSummary(selectedPost.summary || '');
+      setEditDetails(selectedPost.details || '');
+      setEditFolders(selectedPost.folders || []);
+    }
+  }, [selectedPost]);
   // only include posts visible to current user: public or individually addressed
   const visiblePosts = posts.filter(p =>
     // class posts visible to all
@@ -113,6 +125,24 @@ export default function Piazza() {
   const studentResponses = posts.reduce((sum, p) => sum + (p.studentAnswers?.length || 0), 0);
   const instructorResponses = posts.reduce((sum, p) => sum + (p.instructorAnswers?.length || 0), 0);
   const numEnrolled = enrollments.filter(e => e.course === cid).length;
+  const handleSaveEdit = async () => {
+    if (!selectedPostId) return;
+    const payload = { ...selectedPost, summary: editSummary, details: editDetails, folders: editFolders };
+    try {
+      const updated = await updatePiazzaPost(selectedPostId, payload);
+      setSelectedPost(updated);
+      setPosts(ps => ps.map(p => p._id === updated._id ? updated : p));
+      setIsEditingPost(false);
+    } catch (err) { console.error(err); }
+  };
+  const handleDeletePost = async () => {
+    if (!selectedPostId) return;
+    try {
+      await deletePiazzaPost(selectedPostId);
+      setPosts(ps => ps.filter(p => p._id !== selectedPostId));
+      setSelectedPostId(null);
+    } catch (err) { console.error(err); }
+  };
   return (
     <div id="wd-piazza">
       {/* Pazza Navigation Bar */}
@@ -239,12 +269,43 @@ export default function Piazza() {
                 />
               ) : selectedPost ? (
                 <div>
-                  <h3>{selectedPost.summary}</h3>
-                  <p className="text-muted">
-                    By {selectedPost.author} on{' '}
-                    {new Date(selectedPost.createdAt).toLocaleString()}
-                  </p>
-                  <hr />
+                  {/** Edit mode **/}
+                  {isEditingPost ? (
+                    <div>
+                      <input className="form-control mb-2" value={editSummary} onChange={e => setEditSummary(e.target.value)} />
+                      <textarea className="form-control mb-2" rows={4} value={editDetails} onChange={e => setEditDetails(e.target.value)} />
+                      <div className="mb-2">
+                        <label>Folders:</label>
+                        {folders.map(f => (
+                          <div key={f} className="form-check form-check-inline">
+                            <input type="checkbox" className="form-check-input" id={`edit-folder-${f}`} checked={editFolders.includes(f)} onChange={() => setEditFolders(efs => efs.includes(f) ? efs.filter(x=>x!==f) : [...efs, f])} />
+                            <label className="form-check-label" htmlFor={`edit-folder-${f}`}>{f}</label>
+                          </div>
+                        ))}
+                      </div>
+                      <button className="btn btn-success me-2" onClick={handleSaveEdit}>Save</button>
+                      <button className="btn btn-secondary" onClick={() => setIsEditingPost(false)}>Cancel</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <h3 className="m-0">{selectedPost.summary}</h3>
+                        {(currentUser?._id === selectedPost.author || currentUser?.role === 'FACULTY') && (
+                          <Dropdown>
+                            <Dropdown.Toggle variant="secondary" size="sm">Actions</Dropdown.Toggle>
+                            <Dropdown.Menu>
+                              <Dropdown.Item onClick={() => setIsEditingPost(true)}>Edit</Dropdown.Item>
+                              <Dropdown.Item onClick={handleDeletePost}>Delete</Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        )}
+                      </div>
+                      <p className="text-muted mb-2">
+                        By {selectedPost.author} on {new Date(selectedPost.createdAt).toLocaleString()}
+                      </p>
+                      <hr />
+                    </>
+                  )}
                   <div>{selectedPost.details}</div>
                   {/* Student's Answers */}
                   <section className="mt-4">
