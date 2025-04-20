@@ -19,6 +19,7 @@ export default function Piazza() {
   const [instructorAnswerContent, setInstructorAnswerContent] = useState<string>('');
   const [followupContent, setFollowupContent] = useState<string>('');
   const [replyContents, setReplyContents] = useState<{ [key: string]: string }>({});
+  const enrollments = useSelector((state: RootState) => state.enrollmentsReducer.enrollments);
   useEffect(() => {
     if (cid) {
       findPiazzaFoldersForCourse(cid).then(setFolders);
@@ -69,6 +70,12 @@ export default function Piazza() {
       setReplyContents(prev => ({ ...prev, [followupId]: '' }));
     } catch (err) { console.error(err); }
   };
+  // Class-at-a-Glance metrics
+  const totalPosts = posts.length;
+  const unansweredPosts = posts.filter(p => ((p.studentAnswers?.length || 0) + (p.instructorAnswers?.length || 0)) === 0).length;
+  const studentResponses = posts.reduce((sum, p) => sum + (p.studentAnswers?.length || 0), 0);
+  const instructorResponses = posts.reduce((sum, p) => sum + (p.instructorAnswers?.length || 0), 0);
+  const numEnrolled = enrollments.filter(e => e.course === cid).length;
   return (
     <div id="wd-piazza" className="p-3">
       <h2 className="text-danger">Piazza for Course {cid}</h2>
@@ -232,7 +239,16 @@ export default function Piazza() {
               </button>
             </div>
           ) : (
-            <p>Select a post or click "New Post"</p>
+            <div className="p-3">
+              <h4>Class at a Glance</h4>
+              <ul className="list-unstyled">
+                <li><strong>Total posts:</strong> {totalPosts}</li>
+                <li><strong>Unanswered posts:</strong> {unansweredPosts}</li>
+                <li><strong>Student responses:</strong> {studentResponses}</li>
+                <li><strong>Instructor responses:</strong> {instructorResponses}</li>
+                <li><strong>Students enrolled:</strong> {numEnrolled}</li>
+              </ul>
+            </div>
           )}
         </div>
       </div>
