@@ -7,6 +7,7 @@ import Home from "./Home";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import People from "./People/Table";
+import Piazza from "./Piazza";
 import { FaAlignJustify } from "react-icons/fa";
 
 export default function Courses() {
@@ -34,6 +35,7 @@ export default function Courses() {
             <Route path="/" element={<Navigate to="Home" />} />
             <Route path="Home" element={<Home />} />
             <Route path="Modules" element={<Modules />} />
+            <Route path="Piazza" element={<Piazza />} />
             <Route path="Assignments" element={<Assignments />} />
             <Route path="People" element={<People />} />
             <Route path="Assignments/:aid" element={<AssignmentEditor />} />
