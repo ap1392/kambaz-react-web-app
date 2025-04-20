@@ -107,3 +107,30 @@ export const addInstructorAnswerToPiazzaPost = async (postId: string, answer: an
   );
   return data;
 };
+export const addFollowupToPiazzaPost = async (postId: string, followup: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}/followups`,
+    followup
+  );
+  return data;
+};
+export const addReplyToPiazzaPostFollowup = async (postId: string, followupId: string, reply: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}/followups/${followupId}/replies`,
+    reply
+  );
+  return data;
+};
+export const updatePiazzaPost = async (postId: string, post: any) => {
+  const { data } = await axiosWithCredentials.put(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}`,
+    post
+  );
+  return data;
+};
+export const deletePiazzaPost = async (postId: string) => {
+  const { data } = await axiosWithCredentials.delete(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}`
+  );
+  return data;
+};

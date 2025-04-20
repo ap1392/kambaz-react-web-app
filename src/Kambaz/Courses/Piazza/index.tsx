@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost } from '../client';
+import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup } from '../client';
 import { FormEvent } from 'react';
 
 export default function Piazza() {
@@ -17,6 +17,8 @@ export default function Piazza() {
   const currentUser = useSelector((state: RootState) => state.accountReducer.currentUser);
   const [studentAnswerContent, setStudentAnswerContent] = useState<string>('');
   const [instructorAnswerContent, setInstructorAnswerContent] = useState<string>('');
+  const [followupContent, setFollowupContent] = useState<string>('');
+  const [replyContents, setReplyContents] = useState<{ [key: string]: string }>({});
   useEffect(() => {
     if (cid) {
       findPiazzaFoldersForCourse(cid).then(setFolders);
@@ -46,6 +48,26 @@ export default function Piazza() {
       setSelectedPost((prev: any) => ({ ...prev, instructorAnswers: [...(prev.instructorAnswers || []), newAns] }));
       setInstructorAnswerContent('');
     } catch (e) { console.error(e); }
+  };
+  const submitFollowup = async () => {
+    if (!followupContent.trim() || !selectedPostId || !currentUser) return;
+    try {
+      const newFollowup = await addFollowupToPiazzaPost(selectedPostId, { author: currentUser._id, content: followupContent });
+      setSelectedPost((prev: any) => ({ ...prev, followups: [...(prev.followups || []), newFollowup] }));
+      setFollowupContent('');
+    } catch (err) { console.error(err); }
+  };
+  const submitReply = async (followupId: string) => {
+    const content = replyContents[followupId]?.trim();
+    if (!content || !selectedPostId || !currentUser) return;
+    try {
+      const newReply = await addReplyToPiazzaPostFollowup(selectedPostId, followupId, { author: currentUser._id, content });
+      setSelectedPost((prev: any) => ({
+        ...prev,
+        followups: prev.followups.map((f: any) => f._id === followupId ? { ...f, replies: [...(f.replies || []), newReply] } : f)
+      }));
+      setReplyContents(prev => ({ ...prev, [followupId]: '' }));
+    } catch (err) { console.error(err); }
   };
   return (
     <div id="wd-piazza" className="p-3">
@@ -152,6 +174,57 @@ export default function Piazza() {
                     <button className="btn btn-primary mt-2" type="button" onClick={submitInstructorAnswer}>Submit Answer</button>
                   </div>
                 )}
+              </section>
+              {/* Follow-up Discussions */}
+              <section className="mt-4">
+                <h5>Follow-up Discussions</h5>
+                {selectedPost.followups && selectedPost.followups.length > 0 ? (
+                  selectedPost.followups.map((fu: any) => (
+                    <div key={fu._id} className="border p-2 mb-3">
+                      <p className="mb-1"><strong>{fu.author}</strong> <small>{new Date(fu.createdAt).toLocaleString()}</small></p>
+                      <div className="mb-2">{fu.content}</div>
+                      {/* Replies */}
+                      {fu.replies && fu.replies.length > 0 && (
+                        <div className="ms-3 mb-2">
+                          {fu.replies.map((r: any) => (
+                            <div key={r._id} className="border p-2 mb-1">
+                              <p className="mb-1"><strong>{r.author}</strong> <small>{new Date(r.createdAt).toLocaleString()}</small></p>
+                              <div>{r.content}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Reply form */}
+                      <div className="ms-3">
+                        <textarea
+                          className="form-control mb-1"
+                          rows={2}
+                          placeholder="Write a reply..."
+                          value={replyContents[fu._id] || ''}
+                          onChange={e => setReplyContents(prev => ({ ...prev, [fu._id]: e.target.value }))}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => submitReply(fu._id)}
+                        >Reply</button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No follow-up discussions yet.</p>
+                )}
+                {/* New followup form */}
+                <div className="mt-2">
+                  <textarea
+                    className="form-control mb-1"
+                    rows={3}
+                    placeholder="Start a new follow-up discussion..."
+                    value={followupContent}
+                    onChange={e => setFollowupContent(e.target.value)}
+                  />
+                  <button type="button" className="btn btn-sm btn-primary" onClick={submitFollowup}>Add Discussion</button>
+                </div>
               </section>
               {/* Back Button */}
               <button className="btn btn-secondary mt-3" onClick={() => setSelectedPostId(null)}>
