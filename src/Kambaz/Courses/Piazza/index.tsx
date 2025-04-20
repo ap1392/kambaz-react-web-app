@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, NavLink, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup, addPiazzaFolderForCourse, deletePiazzaFolderFromCourse, renamePiazzaFolderForCourse } from '../client';
@@ -14,6 +14,9 @@ export default function Piazza() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const currentUser = useSelector((state: RootState) => state.accountReducer.currentUser);
   const [studentAnswerContent, setStudentAnswerContent] = useState<string>('');
   const [instructorAnswerContent, setInstructorAnswerContent] = useState<string>('');
@@ -37,6 +40,25 @@ export default function Piazza() {
   const filteredPosts = selectedFolder
     ? posts.filter(p => p.folders.includes(selectedFolder))
     : [];
+  const sidebarPosts = useMemo(() => {
+    return filteredPosts
+      .filter(p => p.summary.toLowerCase().includes(searchTerm.toLowerCase()) || p.details.toLowerCase().includes(searchTerm.toLowerCase()))
+      .slice()
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [filteredPosts, searchTerm]);
+  const groupedPosts = useMemo(() => {
+    const today = new Date();
+    const groups: { [key: string]: any[] } = { Today: [], Yesterday: [], 'Last Week': [], Others: [] };
+    sidebarPosts.forEach(p => {
+      const created = new Date(p.createdAt);
+      const diff = Math.floor((today.getTime() - created.getTime()) / (1000*60*60*24));
+      if (diff === 0) groups.Today.push(p);
+      else if (diff === 1) groups.Yesterday.push(p);
+      else if (diff <= 7) groups['Last Week'].push(p);
+      else groups.Others.push(p);
+    });
+    return groups;
+  }, [sidebarPosts]);
   const submitStudentAnswer = async () => {
     if (!studentAnswerContent.trim() || !selectedPostId || !currentUser) return;
     try {
@@ -120,44 +142,76 @@ export default function Piazza() {
           />
         ) : (
           <div className="d-flex mt-4" style={{ height: '80vh' }}>
-            <div id="piazza-sidebar" className="border-end pe-3" style={{ width: '300px' }}>
+            <div id="piazza-sidebar" className="border-end pe-3" style={{ width: sidebarOpen ? 300 : 40 }}>
+              {/* Toggle sidebar */}
               <button
-                className="btn btn-primary w-100 mb-3"
-                onClick={() => setIsCreating(true)}
-              >
-                New Post
-              </button>
-              <h6>Folders</h6>
-              <ul className="list-unstyled">
-                {folders.map((f) => (
-                  <li key={f} className="mb-1">
-                    <button
-                      type="button"
-                      className={`btn btn-link p-0 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
-                      onClick={() => setSelectedFolder(f)}
-                    >
-                      {f}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <h6>Posts ({filteredPosts.length})</h6>
-              <ul className="list-unstyled">
-                {filteredPosts.map((p) => (
-                  <li key={p._id} className="mb-1">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0"
-                      onClick={() => {
-                        setIsCreating(false);
-                        setSelectedPostId(p._id);
-                      }}
-                    >
-                      {p.summary}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                className="btn btn-light mb-2"
+                style={{ width: '100%' }}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >{sidebarOpen ? '<' : '>'}</button>
+              {sidebarOpen && (
+                <>
+                  <button
+                    className="btn btn-primary w-100 mb-2"
+                    onClick={() => setIsCreating(true)}
+                  >
+                    New Post
+                  </button>
+                  {/* Search posts */}
+                  <input
+                    type="text"
+                    className="form-control mb-2"
+                    placeholder="Search posts..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                  />
+                  {/* Folder filters */}
+                  <h6>Folders</h6>
+                  <ul className="list-unstyled">
+                    {folders.map(f => (
+                      <li key={f} className="mb-1">
+                        <button
+                          type="button"
+                          className={`btn btn-link p-0 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
+                          onClick={() => { setSelectedFolder(f); setSearchTerm(''); }}
+                        >{f}</button>
+                      </li>
+                    ))}
+                  </ul>
+                  {/* Grouped post list */}
+                  {Object.entries(groupedPosts).map(([group, posts]) => (
+                    posts.length > 0 && (
+                      <div key={group} className="mb-3">
+                        <h6
+                          className="mb-1"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }))}
+                        >
+                          {group} ({posts.length})
+                        </h6>
+                        {openGroups[group] !== false && (
+                          <ul className="list-unstyled ps-3">
+                            {posts.map(p => (
+                              <li key={p._id} className="mb-1">
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0"
+                                  onClick={() => { setIsCreating(false); setSelectedPostId(p._id); }}
+                                >
+                                  <strong>{p.summary}</strong><br />
+                                  <small className="text-muted">
+                                    {new Date(p.createdAt).toLocaleTimeString()} - {p.details.slice(0, 50)}...
+                                  </small>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  ))}
+                </>
+              )}
             </div>
             <div id="piazza-content" className="flex-fill ps-3">
               {isCreating ? (
