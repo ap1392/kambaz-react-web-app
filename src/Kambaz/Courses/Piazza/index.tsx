@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup, addPiazzaFolderForCourse, deletePiazzaFolderFromCourse, renamePiazzaFolderForCourse } from '../client';
 import { FormEvent } from 'react';
+import { findUsersForCourse } from '../../Account/client';
 
 export default function Piazza() {
   const [isCreating, setIsCreating] = useState(false);
@@ -364,6 +365,12 @@ interface NewPostFormProps {
 function NewPostForm({ courseId, folders, currentUser, onCancel, onSuccess }: NewPostFormProps) {
   const [type, setType] = useState<'QUESTION' | 'NOTE'>('QUESTION');
   const [postTo, setPostTo] = useState<'CLASS' | 'INDIVIDUAL'>('CLASS');
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  useEffect(() => {
+    if (postTo === 'INDIVIDUAL') {
+      findUsersForCourse(courseId).then(setAllUsers);
+    }
+  }, [postTo, courseId]);
   const [recipients, setRecipients] = useState<string[]>([]);
   const [selFolders, setSelFolders] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
@@ -371,8 +378,8 @@ function NewPostForm({ courseId, folders, currentUser, onCancel, onSuccess }: Ne
   const [error, setError] = useState<string>('');
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!summary.trim() || !details.trim() || selFolders.length === 0) {
-      setError('Summary, details, and at least one folder are required');
+    if (!summary.trim() || !details.trim() || selFolders.length === 0 || (postTo === 'INDIVIDUAL' && recipients.length === 0)) {
+      setError('Summary, details, at least one folder, and at least one recipient (if individual) are required');
       return;
     }
     const payload = { author: currentUser._id, type, postTo, recipients, folders: selFolders, summary, details };
@@ -409,7 +416,24 @@ function NewPostForm({ courseId, folders, currentUser, onCancel, onSuccess }: Ne
       {postTo === 'INDIVIDUAL' && (
         <div className="mb-2">
           <label>Recipients:</label>
-          <input type="text" disabled className="form-control" placeholder="(not implemented)" />
+          {allUsers.length === 0 ? (
+            <p>Loading users...</p>
+          ) : (
+            allUsers.map(u => (
+              <div key={u._id} className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`recip-${u._id}`}
+                  checked={recipients.includes(u._id)}
+                  onChange={() => {
+                    setRecipients(rs => rs.includes(u._id) ? rs.filter(id => id !== u._id) : [...rs, u._id]);
+                  }}
+                />
+                <label className="form-check-label" htmlFor={`recip-${u._id}`}>{u.firstName} {u.lastName} ({u.role})</label>
+              </div>
+            ))
+          )}
         </div>
       )}
       <div className="mb-2">
