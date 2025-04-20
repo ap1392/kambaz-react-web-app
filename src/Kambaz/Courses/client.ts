@@ -134,3 +134,23 @@ export const deletePiazzaPost = async (postId: string) => {
   );
   return data;
 };
+export const addPiazzaFolderForCourse = async (courseId: string, name: string) => {
+  const { data } = await axiosWithCredentials.post(
+    `${COURSES_API}/${courseId}/pazza/folders`,
+    { name }
+  );
+  return data;
+};
+export const deletePiazzaFolderFromCourse = async (courseId: string, name: string) => {
+  const { data } = await axiosWithCredentials.delete(
+    `${COURSES_API}/${courseId}/pazza/folders/${encodeURIComponent(name)}`
+  );
+  return data;
+};
+export const renamePiazzaFolderForCourse = async (courseId: string, oldName: string, newName: string) => {
+  const { data } = await axiosWithCredentials.put(
+    `${COURSES_API}/${courseId}/pazza/folders/${encodeURIComponent(oldName)}`,
+    { newName }
+  );
+  return data;
+};

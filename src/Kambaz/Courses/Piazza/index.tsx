@@ -1,9 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, NavLink, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup } from '../client';
+import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost, addFollowupToPiazzaPost, addReplyToPiazzaPostFollowup, addPiazzaFolderForCourse, deletePiazzaFolderFromCourse, renamePiazzaFolderForCourse } from '../client';
 import { FormEvent } from 'react';
 
 export default function Piazza() {
@@ -20,6 +20,9 @@ export default function Piazza() {
   const [followupContent, setFollowupContent] = useState<string>('');
   const [replyContents, setReplyContents] = useState<{ [key: string]: string }>({});
   const enrollments = useSelector((state: RootState) => state.enrollmentsReducer.enrollments);
+  const location = useLocation();
+  const isManage = location.pathname.endsWith('/Manage');
+  const course = useSelector((state: RootState) => state.coursesReducer.courses.find(c => c._id === cid));
   useEffect(() => {
     if (cid) {
       findPiazzaFoldersForCourse(cid).then(setFolders);
@@ -77,180 +80,219 @@ export default function Piazza() {
   const instructorResponses = posts.reduce((sum, p) => sum + (p.instructorAnswers?.length || 0), 0);
   const numEnrolled = enrollments.filter(e => e.course === cid).length;
   return (
-    <div id="wd-piazza" className="p-3">
-      <h2 className="text-danger">Piazza for Course {cid}</h2>
-      <div className="d-flex mt-4" style={{ height: '80vh' }}>
-        <div id="piazza-sidebar" className="border-end pe-3" style={{ width: '300px' }}>
-          <button
-            className="btn btn-primary w-100 mb-3"
-            onClick={() => setIsCreating(true)}
-          >
-            New Post
-          </button>
-          <h6>Folders</h6>
-          <ul className="list-unstyled">
-            {folders.map((f) => (
-              <li key={f} className="mb-1">
-                <button
-                  type="button"
-                  className={`btn btn-link p-0 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
-                  onClick={() => setSelectedFolder(f)}
-                >
-                  {f}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <h6>Posts ({filteredPosts.length})</h6>
-          <ul className="list-unstyled">
-            {filteredPosts.map((p) => (
-              <li key={p._id} className="mb-1">
-                <button
-                  type="button"
-                  className="btn btn-link p-0"
-                  onClick={() => {
-                    setIsCreating(false);
-                    setSelectedPostId(p._id);
-                  }}
-                >
-                  {p.summary}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div id="piazza-content" className="flex-fill ps-3">
-          {isCreating ? (
-            <NewPostForm
-              courseId={cid!}
-              folders={folders}
-              currentUser={currentUser!}
-              onCancel={() => setIsCreating(false)}
-              onSuccess={(newPost) => {
-                setIsCreating(false);
-                setPosts([newPost, ...posts]);
-              }}
-            />
-          ) : selectedPost ? (
-            <div>
-              <h3>{selectedPost.summary}</h3>
-              <p className="text-muted">
-                By {selectedPost.author} on{' '}
-                {new Date(selectedPost.createdAt).toLocaleString()}
-              </p>
-              <hr />
-              <div>{selectedPost.details}</div>
-              {/* Student's Answers */}
-              <section className="mt-4">
-                <h5>Student's Answers</h5>
-                {selectedPost.studentAnswers && selectedPost.studentAnswers.length > 0 ? (
-                  selectedPost.studentAnswers.map((ans: any, idx: number) => (
-                    <div key={idx} className="border p-2 mb-2">
-                      <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
-                      <div>{ans.content}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p>No student answers yet.</p>
-                )}
-                {currentUser?.role === 'STUDENT' &&
-                  (!selectedPost.studentAnswers || !selectedPost.studentAnswers.find((a: any) => a.author === currentUser._id)) && (
-                  <div className="mt-2">
-                    <textarea className="form-control" rows={3} value={studentAnswerContent} onChange={e => setStudentAnswerContent(e.target.value)} placeholder="Write your answer..." />
-                    <button className="btn btn-primary mt-2" type="button" onClick={submitStudentAnswer}>Submit Answer</button>
-                  </div>
-                )}
-              </section>
-              {/* Instructor's Answers */}
-              <section className="mt-4">
-                <h5>Instructor's Answers</h5>
-                {selectedPost.instructorAnswers && selectedPost.instructorAnswers.length > 0 ? (
-                  selectedPost.instructorAnswers.map((ans: any, idx: number) => (
-                    <div key={idx} className="border p-2 mb-2">
-                      <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
-                      <div>{ans.content}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p>No instructor answers yet.</p>
-                )}
-                {currentUser?.role === 'FACULTY' &&
-                  (!selectedPost.instructorAnswers || !selectedPost.instructorAnswers.find((a: any) => a.author === currentUser._id)) && (
-                  <div className="mt-2">
-                    <textarea className="form-control" rows={3} value={instructorAnswerContent} onChange={e => setInstructorAnswerContent(e.target.value)} placeholder="Write your answer..." />
-                    <button className="btn btn-primary mt-2" type="button" onClick={submitInstructorAnswer}>Submit Answer</button>
-                  </div>
-                )}
-              </section>
-              {/* Follow-up Discussions */}
-              <section className="mt-4">
-                <h5>Follow-up Discussions</h5>
-                {selectedPost.followups && selectedPost.followups.length > 0 ? (
-                  selectedPost.followups.map((fu: any) => (
-                    <div key={fu._id} className="border p-2 mb-3">
-                      <p className="mb-1"><strong>{fu.author}</strong> <small>{new Date(fu.createdAt).toLocaleString()}</small></p>
-                      <div className="mb-2">{fu.content}</div>
-                      {/* Replies */}
-                      {fu.replies && fu.replies.length > 0 && (
-                        <div className="ms-3 mb-2">
-                          {fu.replies.map((r: any) => (
-                            <div key={r._id} className="border p-2 mb-1">
-                              <p className="mb-1"><strong>{r.author}</strong> <small>{new Date(r.createdAt).toLocaleString()}</small></p>
-                              <div>{r.content}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* Reply form */}
-                      <div className="ms-3">
-                        <textarea
-                          className="form-control mb-1"
-                          rows={2}
-                          placeholder="Write a reply..."
-                          value={replyContents[fu._id] || ''}
-                          onChange={e => setReplyContents(prev => ({ ...prev, [fu._id]: e.target.value }))}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-primary"
-                          onClick={() => submitReply(fu._id)}
-                        >Reply</button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p>No follow-up discussions yet.</p>
-                )}
-                {/* New followup form */}
-                <div className="mt-2">
-                  <textarea
-                    className="form-control mb-1"
-                    rows={3}
-                    placeholder="Start a new follow-up discussion..."
-                    value={followupContent}
-                    onChange={e => setFollowupContent(e.target.value)}
-                  />
-                  <button type="button" className="btn btn-sm btn-primary" onClick={submitFollowup}>Add Discussion</button>
-                </div>
-              </section>
-              {/* Back Button */}
-              <button className="btn btn-secondary mt-3" onClick={() => setSelectedPostId(null)}>
-                ← Back to list
-              </button>
-            </div>
-          ) : (
-            <div className="p-3">
-              <h4>Class at a Glance</h4>
-              <ul className="list-unstyled">
-                <li><strong>Total posts:</strong> {totalPosts}</li>
-                <li><strong>Unanswered posts:</strong> {unansweredPosts}</li>
-                <li><strong>Student responses:</strong> {studentResponses}</li>
-                <li><strong>Instructor responses:</strong> {instructorResponses}</li>
-                <li><strong>Students enrolled:</strong> {numEnrolled}</li>
-              </ul>
-            </div>
+    <div id="wd-piazza">
+      {/* Pazza Navigation Bar */}
+      <div id="pazza-navbar" className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-white sticky-top px-3 py-2">
+        <div className="d-flex align-items-center">
+          <span className="me-3 fw-bold text-primary">pazza</span>
+          <span className="me-4">{course?.name || cid}</span>
+          <NavLink to="" end className={({ isActive }) => isActive ? 'text-dark fw-bold me-3' : 'text-muted me-3'}>
+            Q&A
+          </NavLink>
+          {currentUser?.role === 'FACULTY' && (
+            <NavLink to="Manage" className={({ isActive }) => isActive ? 'text-dark fw-bold' : 'text-muted'}>
+              Manage Class
+            </NavLink>
           )}
         </div>
+        <div>
+          {currentUser?.firstName} {currentUser?.lastName}
+        </div>
+      </div>
+      <div className="p-3">
+        {isManage ? (
+          <ManageFoldersScreen
+            courseId={cid!}
+            folders={folders}
+            onAdd={async (name) => {
+              await addPiazzaFolderForCourse(cid!, name);
+              const updated = await findPiazzaFoldersForCourse(cid!);
+              setFolders(updated);
+            }}
+            onDelete={async (name) => {
+              await deletePiazzaFolderFromCourse(cid!, name);
+              setFolders(f => f.filter(x => x !== name));
+            }}
+            onRename={async (oldName, newName) => {
+              await renamePiazzaFolderForCourse(cid!, oldName, newName);
+              setFolders(f => f.map(x => x === oldName ? newName : x));
+            }}
+          />
+        ) : (
+          <div className="d-flex mt-4" style={{ height: '80vh' }}>
+            <div id="piazza-sidebar" className="border-end pe-3" style={{ width: '300px' }}>
+              <button
+                className="btn btn-primary w-100 mb-3"
+                onClick={() => setIsCreating(true)}
+              >
+                New Post
+              </button>
+              <h6>Folders</h6>
+              <ul className="list-unstyled">
+                {folders.map((f) => (
+                  <li key={f} className="mb-1">
+                    <button
+                      type="button"
+                      className={`btn btn-link p-0 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
+                      onClick={() => setSelectedFolder(f)}
+                    >
+                      {f}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <h6>Posts ({filteredPosts.length})</h6>
+              <ul className="list-unstyled">
+                {filteredPosts.map((p) => (
+                  <li key={p._id} className="mb-1">
+                    <button
+                      type="button"
+                      className="btn btn-link p-0"
+                      onClick={() => {
+                        setIsCreating(false);
+                        setSelectedPostId(p._id);
+                      }}
+                    >
+                      {p.summary}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div id="piazza-content" className="flex-fill ps-3">
+              {isCreating ? (
+                <NewPostForm
+                  courseId={cid!}
+                  folders={folders}
+                  currentUser={currentUser!}
+                  onCancel={() => setIsCreating(false)}
+                  onSuccess={(newPost) => {
+                    setIsCreating(false);
+                    setPosts([newPost, ...posts]);
+                  }}
+                />
+              ) : selectedPost ? (
+                <div>
+                  <h3>{selectedPost.summary}</h3>
+                  <p className="text-muted">
+                    By {selectedPost.author} on{' '}
+                    {new Date(selectedPost.createdAt).toLocaleString()}
+                  </p>
+                  <hr />
+                  <div>{selectedPost.details}</div>
+                  {/* Student's Answers */}
+                  <section className="mt-4">
+                    <h5>Student's Answers</h5>
+                    {selectedPost.studentAnswers && selectedPost.studentAnswers.length > 0 ? (
+                      selectedPost.studentAnswers.map((ans: any, idx: number) => (
+                        <div key={idx} className="border p-2 mb-2">
+                          <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
+                          <div>{ans.content}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No student answers yet.</p>
+                    )}
+                    {currentUser?.role === 'STUDENT' &&
+                      (!selectedPost.studentAnswers || !selectedPost.studentAnswers.find((a: any) => a.author === currentUser._id)) && (
+                      <div className="mt-2">
+                        <textarea className="form-control" rows={3} value={studentAnswerContent} onChange={e => setStudentAnswerContent(e.target.value)} placeholder="Write your answer..." />
+                        <button className="btn btn-primary mt-2" type="button" onClick={submitStudentAnswer}>Submit Answer</button>
+                      </div>
+                    )}
+                  </section>
+                  {/* Instructor's Answers */}
+                  <section className="mt-4">
+                    <h5>Instructor's Answers</h5>
+                    {selectedPost.instructorAnswers && selectedPost.instructorAnswers.length > 0 ? (
+                      selectedPost.instructorAnswers.map((ans: any, idx: number) => (
+                        <div key={idx} className="border p-2 mb-2">
+                          <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
+                          <div>{ans.content}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No instructor answers yet.</p>
+                    )}
+                    {currentUser?.role === 'FACULTY' &&
+                      (!selectedPost.instructorAnswers || !selectedPost.instructorAnswers.find((a: any) => a.author === currentUser._id)) && (
+                      <div className="mt-2">
+                        <textarea className="form-control" rows={3} value={instructorAnswerContent} onChange={e => setInstructorAnswerContent(e.target.value)} placeholder="Write your answer..." />
+                        <button className="btn btn-primary mt-2" type="button" onClick={submitInstructorAnswer}>Submit Answer</button>
+                      </div>
+                    )}
+                  </section>
+                  {/* Follow-up Discussions */}
+                  <section className="mt-4">
+                    <h5>Follow-up Discussions</h5>
+                    {selectedPost.followups && selectedPost.followups.length > 0 ? (
+                      selectedPost.followups.map((fu: any) => (
+                        <div key={fu._id} className="border p-2 mb-3">
+                          <p className="mb-1"><strong>{fu.author}</strong> <small>{new Date(fu.createdAt).toLocaleString()}</small></p>
+                          <div className="mb-2">{fu.content}</div>
+                          {/* Replies */}
+                          {fu.replies && fu.replies.length > 0 && (
+                            <div className="ms-3 mb-2">
+                              {fu.replies.map((r: any) => (
+                                <div key={r._id} className="border p-2 mb-1">
+                                  <p className="mb-1"><strong>{r.author}</strong> <small>{new Date(r.createdAt).toLocaleString()}</small></p>
+                                  <div>{r.content}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Reply form */}
+                          <div className="ms-3">
+                            <textarea
+                              className="form-control mb-1"
+                              rows={2}
+                              placeholder="Write a reply..."
+                              value={replyContents[fu._id] || ''}
+                              onChange={e => setReplyContents(prev => ({ ...prev, [fu._id]: e.target.value }))}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-primary"
+                              onClick={() => submitReply(fu._id)}
+                            >Reply</button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No follow-up discussions yet.</p>
+                    )}
+                    {/* New followup form */}
+                    <div className="mt-2">
+                      <textarea
+                        className="form-control mb-1"
+                        rows={3}
+                        placeholder="Start a new follow-up discussion..."
+                        value={followupContent}
+                        onChange={e => setFollowupContent(e.target.value)}
+                      />
+                      <button type="button" className="btn btn-sm btn-primary" onClick={submitFollowup}>Add Discussion</button>
+                    </div>
+                  </section>
+                  {/* Back Button */}
+                  <button className="btn btn-secondary mt-3" onClick={() => setSelectedPostId(null)}>
+                    ← Back to list
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3">
+                  <h4>Class at a Glance</h4>
+                  <ul className="list-unstyled">
+                    <li><strong>Total posts:</strong> {totalPosts}</li>
+                    <li><strong>Unanswered posts:</strong> {unansweredPosts}</li>
+                    <li><strong>Student responses:</strong> {studentResponses}</li>
+                    <li><strong>Instructor responses:</strong> {instructorResponses}</li>
+                    <li><strong>Students enrolled:</strong> {numEnrolled}</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -337,5 +379,64 @@ function NewPostForm({ courseId, folders, currentUser, onCancel, onSuccess }: Ne
       <button type="submit" className="btn btn-success me-2">Post</button>
       <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
     </form>
+  );
+}
+
+// Manage Class Folders screen component
+interface ManageFoldersProps {
+  courseId: string;
+  folders: string[];
+  onAdd: (name: string) => Promise<void>;
+  onDelete: (name: string) => void;
+  onRename: (oldName: string, newName: string) => void;
+}
+function ManageFoldersScreen({ courseId, folders, onAdd, onDelete, onRename }: ManageFoldersProps) {
+  const [newName, setNewName] = useState<string>('');
+  const [editing, setEditing] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState<string>('');
+  return (
+    <div>
+      <h3>Manage Folders</h3>
+      <div className="mb-3 d-flex">
+        <input
+          className="form-control me-2"
+          placeholder="New folder name"
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+        />
+        <button
+          className="btn btn-primary"
+          disabled={!newName.trim()}
+          onClick={async () => { await onAdd(newName.trim()); setNewName(''); }}
+        >Add Folder</button>
+      </div>
+      <ul className="list-group">
+        {folders.map(f => (
+          <li key={f} className="list-group-item d-flex align-items-center">
+            {editing === f ? (
+              <>
+                <input
+                  className="form-control me-2"
+                  value={renameValue}
+                  onChange={e => setRenameValue(e.target.value)}
+                />
+                <button
+                  className="btn btn-sm btn-success me-1"
+                  disabled={!renameValue.trim()}
+                  onClick={() => { onRename(f, renameValue.trim()); setEditing(null); }}
+                >Save</button>
+                <button className="btn btn-sm btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <span className="flex-fill">{f}</span>
+                <button className="btn btn-sm btn-outline-secondary me-1" onClick={() => { setEditing(f); setRenameValue(f); }}>Edit</button>
+                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(f)}>Delete</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 } 
