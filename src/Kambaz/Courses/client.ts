@@ -93,3 +93,17 @@ export const createPiazzaPost = async (courseId: string, post: any) => {
   );
   return data;
 };
+export const addStudentAnswerToPiazzaPost = async (postId: string, answer: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}/studentAnswers`,
+    answer
+  );
+  return data;
+};
+export const addInstructorAnswerToPiazzaPost = async (postId: string, answer: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}/instructorAnswers`,
+    answer
+  );
+  return data;
+};

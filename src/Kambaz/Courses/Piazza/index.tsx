@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById } from '../client';
+import { findPiazzaFoldersForCourse, findPiazzaPostsForCourse, createPiazzaPost, findPiazzaPostById, addStudentAnswerToPiazzaPost, addInstructorAnswerToPiazzaPost } from '../client';
 import { FormEvent } from 'react';
 
 export default function Piazza() {
@@ -15,6 +15,8 @@ export default function Piazza() {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const currentUser = useSelector((state: RootState) => state.accountReducer.currentUser);
+  const [studentAnswerContent, setStudentAnswerContent] = useState<string>('');
+  const [instructorAnswerContent, setInstructorAnswerContent] = useState<string>('');
   useEffect(() => {
     if (cid) {
       findPiazzaFoldersForCourse(cid).then(setFolders);
@@ -29,6 +31,22 @@ export default function Piazza() {
   const filteredPosts = selectedFolder
     ? posts.filter(p => p.folders.includes(selectedFolder))
     : [];
+  const submitStudentAnswer = async () => {
+    if (!studentAnswerContent.trim() || !selectedPostId || !currentUser) return;
+    try {
+      const newAns = await addStudentAnswerToPiazzaPost(selectedPostId, { author: currentUser._id, content: studentAnswerContent });
+      setSelectedPost((prev: any) => ({ ...prev, studentAnswers: [...(prev.studentAnswers || []), newAns] }));
+      setStudentAnswerContent('');
+    } catch (e) { console.error(e); }
+  };
+  const submitInstructorAnswer = async () => {
+    if (!instructorAnswerContent.trim() || !selectedPostId || !currentUser) return;
+    try {
+      const newAns = await addInstructorAnswerToPiazzaPost(selectedPostId, { author: currentUser._id, content: instructorAnswerContent });
+      setSelectedPost((prev: any) => ({ ...prev, instructorAnswers: [...(prev.instructorAnswers || []), newAns] }));
+      setInstructorAnswerContent('');
+    } catch (e) { console.error(e); }
+  };
   return (
     <div id="wd-piazza" className="p-3">
       <h2 className="text-danger">Piazza for Course {cid}</h2>
@@ -93,6 +111,49 @@ export default function Piazza() {
               </p>
               <hr />
               <div>{selectedPost.details}</div>
+              {/* Student's Answers */}
+              <section className="mt-4">
+                <h5>Student's Answers</h5>
+                {selectedPost.studentAnswers && selectedPost.studentAnswers.length > 0 ? (
+                  selectedPost.studentAnswers.map((ans: any, idx: number) => (
+                    <div key={idx} className="border p-2 mb-2">
+                      <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
+                      <div>{ans.content}</div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No student answers yet.</p>
+                )}
+                {currentUser?.role === 'STUDENT' &&
+                  (!selectedPost.studentAnswers || !selectedPost.studentAnswers.find((a: any) => a.author === currentUser._id)) && (
+                  <div className="mt-2">
+                    <textarea className="form-control" rows={3} value={studentAnswerContent} onChange={e => setStudentAnswerContent(e.target.value)} placeholder="Write your answer..." />
+                    <button className="btn btn-primary mt-2" type="button" onClick={submitStudentAnswer}>Submit Answer</button>
+                  </div>
+                )}
+              </section>
+              {/* Instructor's Answers */}
+              <section className="mt-4">
+                <h5>Instructor's Answers</h5>
+                {selectedPost.instructorAnswers && selectedPost.instructorAnswers.length > 0 ? (
+                  selectedPost.instructorAnswers.map((ans: any, idx: number) => (
+                    <div key={idx} className="border p-2 mb-2">
+                      <p className="mb-1"><strong>{ans.author}</strong> <small>{new Date(ans.createdAt).toLocaleString()}</small></p>
+                      <div>{ans.content}</div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No instructor answers yet.</p>
+                )}
+                {currentUser?.role === 'FACULTY' &&
+                  (!selectedPost.instructorAnswers || !selectedPost.instructorAnswers.find((a: any) => a.author === currentUser._id)) && (
+                  <div className="mt-2">
+                    <textarea className="form-control" rows={3} value={instructorAnswerContent} onChange={e => setInstructorAnswerContent(e.target.value)} placeholder="Write your answer..." />
+                    <button className="btn btn-primary mt-2" type="button" onClick={submitInstructorAnswer}>Submit Answer</button>
+                  </div>
+                )}
+              </section>
+              {/* Back Button */}
               <button className="btn btn-secondary mt-3" onClick={() => setSelectedPostId(null)}>
                 ← Back to list
               </button>
