@@ -37,9 +37,10 @@ export default function Piazza() {
       findPiazzaPostById(selectedPostId).then(setSelectedPost);
     }
   }, [selectedPostId]);
+  // show all posts by default, filter if a folder is selected
   const filteredPosts = selectedFolder
     ? posts.filter(p => p.folders.includes(selectedFolder))
-    : [];
+    : posts;
   const sidebarPosts = useMemo(() => {
     return filteredPosts
       .filter(p => p.summary.toLowerCase().includes(searchTerm.toLowerCase()) || p.details.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -116,6 +117,19 @@ export default function Piazza() {
               Manage Class
             </NavLink>
           )}
+          {/* Folder filters */}
+          <div className="ms-4 d-flex">
+            {folders.map(f => (
+              <button
+                key={f}
+                type="button"
+                className={`btn btn-link px-2 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
+                onClick={() => { setSelectedFolder(f); setSearchTerm(''); }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
         <div>
           {currentUser?.firstName} {currentUser?.lastName}
@@ -165,19 +179,6 @@ export default function Piazza() {
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                   />
-                  {/* Folder filters */}
-                  <h6>Folders</h6>
-                  <ul className="list-unstyled">
-                    {folders.map(f => (
-                      <li key={f} className="mb-1">
-                        <button
-                          type="button"
-                          className={`btn btn-link p-0 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
-                          onClick={() => { setSelectedFolder(f); setSearchTerm(''); }}
-                        >{f}</button>
-                      </li>
-                    ))}
-                  </ul>
                   {/* Grouped post list */}
                   {Object.entries(groupedPosts).map(([group, posts]) => (
                     posts.length > 0 && (
