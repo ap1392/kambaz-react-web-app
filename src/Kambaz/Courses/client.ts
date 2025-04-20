@@ -68,3 +68,28 @@ export const getUserEnrollments = async (userId: string) => {
   );
   return response.data;
 };
+export const findPiazzaFoldersForCourse = async (courseId: string) => {
+  const { data } = await axiosWithCredentials.get(
+    `${COURSES_API}/${courseId}/pazza/folders`
+  );
+  return data as string[];
+};
+export const findPiazzaPostsForCourse = async (courseId: string) => {
+  const { data } = await axiosWithCredentials.get(
+    `${COURSES_API}/${courseId}/pazza/posts`
+  );
+  return data as any[];
+};
+export const findPiazzaPostById = async (postId: string) => {
+  const { data } = await axiosWithCredentials.get(
+    `${REMOTE_SERVER}/api/pazza/posts/${postId}`
+  );
+  return data as any;
+};
+export const createPiazzaPost = async (courseId: string, post: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${COURSES_API}/${courseId}/pazza/posts`,
+    post
+  );
+  return data;
+};
