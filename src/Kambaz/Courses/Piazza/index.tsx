@@ -38,10 +38,15 @@ export default function Piazza() {
       findPiazzaPostById(selectedPostId).then(setSelectedPost);
     }
   }, [selectedPostId]);
-  // show all posts by default, filter if a folder is selected
+  // only include posts visible to current user: public or individually addressed
+  const visiblePosts = posts.filter(p =>
+    p.postTo === 'CLASS' ||
+    (p.postTo === 'INDIVIDUAL' && p.recipients?.includes(currentUser?._id))
+  );
+  // then filter by folder selection
   const filteredPosts = selectedFolder
-    ? posts.filter(p => p.folders.includes(selectedFolder))
-    : posts;
+    ? visiblePosts.filter(p => p.folders.includes(selectedFolder))
+    : visiblePosts;
   const sidebarPosts = useMemo(() => {
     return filteredPosts
       .filter(p => p.summary.toLowerCase().includes(searchTerm.toLowerCase()) || p.details.toLowerCase().includes(searchTerm.toLowerCase()))
