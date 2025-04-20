@@ -40,8 +40,13 @@ export default function Piazza() {
   }, [selectedPostId]);
   // only include posts visible to current user: public or individually addressed
   const visiblePosts = posts.filter(p =>
+    // class posts visible to all
     p.postTo === 'CLASS' ||
-    (p.postTo === 'INDIVIDUAL' && p.recipients?.includes(currentUser?._id))
+    // individual posts visible if you're a recipient or you authored the post
+    (p.postTo === 'INDIVIDUAL' && (
+      p.recipients?.includes(currentUser?._id) ||
+      p.author === currentUser?._id
+    ))
   );
   // then filter by folder selection
   const filteredPosts = selectedFolder
