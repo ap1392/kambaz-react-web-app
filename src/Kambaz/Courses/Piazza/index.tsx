@@ -123,23 +123,23 @@ export default function Piazza() {
               Manage Class
             </NavLink>
           )}
-          {/* Folder filters */}
-          <div className="ms-4 d-flex">
-            {folders.map(f => (
-              <button
-                key={f}
-                type="button"
-                className={`btn btn-link px-2 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
-                onClick={() => { setSelectedFolder(f); setSearchTerm(''); }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
         </div>
         <div>
           {currentUser?.firstName} {currentUser?.lastName}
         </div>
+      </div>
+      {/* Folder filters under Pazza Navigation Bar */}
+      <div id="pazza-folder-filters" className="border-bottom bg-white px-3 py-2 sticky-top" style={{ top: '56px', zIndex: 1000 }}>
+        {folders.map(f => (
+          <button
+            key={f}
+            type="button"
+            className={`btn btn-link px-2 ${selectedFolder === f ? 'fw-bold text-decoration-underline' : ''}`}
+            onClick={() => { setSelectedFolder(f); setSearchTerm(''); }}
+          >
+            {f}
+          </button>
+        ))}
       </div>
       <div className="p-3">
         {isManage ? (
