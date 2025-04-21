@@ -255,7 +255,7 @@ export default function Piazza() {
                 </>
               )}
             </div>
-            <div id="piazza-content" className="flex-fill ps-3">
+            <div id="piazza-content" className="flex-fill ps-3" style={{ overflowY: 'auto', height: '100%' }}>
               {isCreating ? (
                 <NewPostForm
                   courseId={cid!}
